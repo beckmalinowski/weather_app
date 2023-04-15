@@ -3,7 +3,7 @@ from tkinter import ttk
 import ttkbootstrap as ttk
 from PIL import Image, ImageTk
 import requests, bs4
-import datetime
+from datetime import datetime
 import shutil
 
 
@@ -53,7 +53,8 @@ class App(ttk.Window):
         self.minsize(400, 250)
         self.maxsize(400, 250)
         # self.iconbitmap("") TODO
-
+        
+        current_time = datetime.now().strftime("%H:%M:%S")
         self._data = weather
         
         # will pull the current image associated with the weather conditions
@@ -68,8 +69,12 @@ class App(ttk.Window):
         
         # frame config
         header = ttk.Frame(self, width = 400, height = 30)
-        image_frame = ttk.Frame(self, width = 100, height = 190)
-        content_frame = ttk.Frame(self, width = 300, height = 190)
+
+        content_frame = ttk.Frame(self, width = 400, height = 190)
+        content_frame.columnconfigure(0, weight = 1, uniform = 'a') # index, weight
+        content_frame.columnconfigure(1, weight = 2, uniform = 'a') # index, weight
+        content_frame.rowconfigure((0, 1, 2, 3, 4, 5, 6), weight = 1, uniform = 'a')
+
         footer = ttk.Frame(self, width = 400, height = 30)
 
 
@@ -79,33 +84,40 @@ class App(ttk.Window):
                 text = "Lawrence, KS",
                 font = ("", H1)
         ).place(anchor = "center", relx = 0.5, rely = 0.5)
+        
+        self.time_text = ttk.Label(
+                header,
+                text = current_time,
+                font = ("", H3)
+        )
 
         header.pack(expand = True, fill = "both")
         
 
         # weather_photo
         ttk.Label(
-                image_frame,
+                content_frame,
                 image = weather_photo,
                 text = ""
-        ).pack(side = "left", expand = True, fill = "x")
-        image_frame.pack(side = "left")
+        ).grid(row = 0, column = 0, rowspan = 7, sticky = "nws")
 
 
         # content_frame widgets
         # weather description
         ttk.Label(
-                self,
+                content_frame,
                 text = self._data.get_condition(),
                 font = ("", H4)
-        ).pack()
+        ).grid(row = 1, column = 1, columnspan = 3, sticky = "nws", padx = 2)
 
         # fahrenheit temperature
         ttk.Label(
-                self,
-                text = self._data.get_temperature_f()
-        ).pack()
+                content_frame,
+                text = self._data.get_temperature_f(),
+                font = ("", H2)
+        ).grid(row = 2, column = 1, sticky = "nws", padx = 2)
 
+        self.time_text.pack(side = "right")
         content_frame.pack(expand = True, fill = "both")
 
 
@@ -115,4 +127,12 @@ class App(ttk.Window):
         footer.pack(expand = True, fill = "both")
 
         # run
+        self.update_time()
         self.mainloop()
+
+    def update_time(self):
+        current_time = datetime.now().strftime("%H:%M:%S")
+
+        #Use the config method of message to update the text
+        self.time_text.config(text = current_time)
+        self.after(1000, self.update_time)
